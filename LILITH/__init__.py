@@ -37,6 +37,7 @@ from .config_phase2 import (
     Phase2ModelConfig,
     Phase2TrainingConfig,
     LoRAConfig,
+    OpusPrototypeConfig,
     GenerationConfig,
     get_small_model_config,
     get_medium_model_config,
@@ -45,7 +46,9 @@ from .config_phase2 import (
     get_7b_model_config,
     get_13b_model_config,
     get_code_training_config,
+    get_opus_prototype_config,
 )
+from .model_opus import OpusDecoder
 from .train_phase2 import train_phase2, create_dataloaders, load_checkpoint
 
 # Production features
@@ -167,6 +170,7 @@ __all__ = [
     "Phase2ModelConfig",
     "Phase2TrainingConfig",
     "LoRAConfig",
+    "OpusPrototypeConfig",
     "GenerationConfig",
     "get_small_model_config",
     "get_medium_model_config",
@@ -175,10 +179,12 @@ __all__ = [
     "get_7b_model_config",
     "get_13b_model_config",
     "get_code_training_config",
+    "get_opus_prototype_config",
     # Phase 2 Training
     "train_phase2",
     "create_dataloaders",
     "load_checkpoint",
+    "OpusDecoder",
     # Production Datasets
     "StreamingTextDataset",
     "WikipediaDataset",

@@ -94,6 +94,42 @@ class LoRAConfig:
 
 
 @dataclass
+class OpusPrototypeConfig(Phase2ModelConfig):
+    """Claude Opus-inspired configuration with sustainability toggles.
+
+    This extends :class:`Phase2ModelConfig` with architectural knobs that
+    mirror frontier-class models while keeping the active parameter count
+    feasible for resource-constrained inference or fine-tuning.
+    """
+
+    # Attention
+    use_rope: bool = True
+    rope_base: float = 10000.0
+    use_alibi: bool = True
+    use_multi_query: bool = True  # share K/V heads to cut memory
+    kv_heads: int = 8  # grouped-query attention when >1
+
+    # Normalization + activation
+    rms_norm_eps: float = 1e-6
+    activation: str = "swiglu"
+
+    # Feedforward / MoE
+    ffn_mult: float = 4.0
+    use_moe: bool = True
+    num_experts: int = 4
+    experts_top_k: int = 2
+    expert_dropout: float = 0.1
+
+    # Regularization
+    attn_dropout: float = 0.0
+    resid_dropout: float = 0.0
+
+    # Weight tying + init
+    tie_embeddings: bool = True
+    init_std: float = 0.02
+
+
+@dataclass
 class GenerationConfig:
     """Configuration for text generation."""
 
@@ -272,6 +308,42 @@ def get_13b_model_config() -> Phase2ModelConfig:
     )
 
 
+def get_opus_prototype_config() -> OpusPrototypeConfig:
+    """Resource-aware Claude Opus-style configuration.
+
+    This profile uses rotary embeddings, ALiBi, grouped-query attention,
+    RMSNorm, SwiGLU, and a small MoE layer to emulate Opus-like behavior
+    while keeping the active parameters closer to a 3-4B dense model.
+    """
+
+    return OpusPrototypeConfig(
+        vocab_size=64000,
+        d_model=3072,
+        n_layers=28,
+        n_heads=24,
+        d_ff=12288,
+        max_seq_len=8192,
+        dropout=0.0,
+        use_gradient_checkpointing=True,
+        use_rope=True,
+        rope_base=100000.0,
+        use_alibi=True,
+        use_multi_query=True,
+        kv_heads=8,
+        rms_norm_eps=1e-6,
+        activation="swiglu",
+        ffn_mult=4.0,
+        use_moe=True,
+        num_experts=4,
+        experts_top_k=2,
+        expert_dropout=0.1,
+        attn_dropout=0.0,
+        resid_dropout=0.0,
+        tie_embeddings=True,
+        init_std=0.02,
+    )
+
+
 def get_code_training_config(
     num_gpus: int = 1,
     total_batch_size: int = 512,
@@ -323,6 +395,7 @@ __all__ = [
     "Phase2ModelConfig",
     "Phase2TrainingConfig",
     "LoRAConfig",
+    "OpusPrototypeConfig",
     "GenerationConfig",
     "get_small_model_config",
     "get_medium_model_config",
@@ -331,4 +404,5 @@ __all__ = [
     "get_7b_model_config",
     "get_13b_model_config",
     "get_code_training_config",
+    "get_opus_prototype_config",
 ]
