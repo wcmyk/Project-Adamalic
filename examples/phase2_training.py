@@ -1,8 +1,8 @@
-"""Example: Advanced training with all features enabled."""
+"""Example: Phase 2 training with production-ready features."""
 from LILITH import (
-    AdvancedModelConfig,
-    AdvancedTrainingConfig,
-    train_advanced,
+    Phase2ModelConfig,
+    Phase2TrainingConfig,
+    train_phase2,
     get_small_model_config,
     BPETokenizer,
 )
@@ -19,8 +19,8 @@ corpus = [
 # Use preset small model configuration
 model_config = get_small_model_config()
 
-# Advanced training configuration with all features
-train_config = AdvancedTrainingConfig(
+# Phase 2 training configuration with production features
+train_config = Phase2TrainingConfig(
     batch_size=8,
     max_steps=1000,
     lr=3e-4,
@@ -37,7 +37,7 @@ train_config = AdvancedTrainingConfig(
     # Evaluation and checkpointing
     eval_interval=200,
     save_interval=500,
-    checkpoint_dir="checkpoints/advanced",
+    checkpoint_dir="checkpoints/phase2",
     keep_last_n_checkpoints=3,
     # Early stopping
     use_early_stopping=True,
@@ -50,8 +50,8 @@ train_config = AdvancedTrainingConfig(
     shuffle=True,
 )
 
-print("Training advanced LILITH model...")
-print("Features enabled:")
+print("Training LILITH model with Phase 2 features...")
+print("Production features enabled:")
 print("  - Mixed precision training (AMP)")
 print("  - Gradient accumulation")
 print("  - Early stopping")
@@ -59,12 +59,12 @@ print("  - Validation set")
 print("  - Regular checkpointing")
 print()
 
-model = train_advanced(
+model = train_phase2(
     corpus=corpus,
     model_config=model_config,
     train_config=train_config,
     block_size=128,
-    checkpoint_path="checkpoints/advanced/final_model.pt",
+    checkpoint_path="checkpoints/phase2/final_model.pt",
 )
 
 print("\nTraining complete!")

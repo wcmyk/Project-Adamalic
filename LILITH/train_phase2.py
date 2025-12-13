@@ -1,4 +1,4 @@
-"""Advanced training loop with mixed precision, gradient accumulation, and more."""
+"""Phase 2 training loop with production-ready features: mixed precision, gradient accumulation, and more."""
 from __future__ import annotations
 
 import math

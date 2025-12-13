@@ -1,4 +1,4 @@
-"""Advanced configuration with comprehensive training options."""
+"""Phase 2 configuration with production-ready training options."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -6,8 +6,8 @@ from typing import Optional, Literal
 
 
 @dataclass
-class AdvancedModelConfig:
-    """Extended model configuration with advanced features."""
+class Phase2ModelConfig:
+    """Extended model configuration with Phase 2 features."""
 
     vocab_size: int
     d_model: int = 256
@@ -31,8 +31,8 @@ class AdvancedModelConfig:
 
 
 @dataclass
-class AdvancedTrainingConfig:
-    """Extended training configuration with advanced features."""
+class Phase2TrainingConfig:
+    """Extended training configuration with Phase 2 features."""
 
     # Basic training
     batch_size: int = 32
@@ -120,9 +120,9 @@ class GenerationConfig:
     use_cache: bool = True
 
 
-def get_small_model_config() -> AdvancedModelConfig:
+def get_small_model_config() -> Phase2ModelConfig:
     """Get configuration for small model (~10M params)."""
-    return AdvancedModelConfig(
+    return Phase2ModelConfig(
         vocab_size=1000,
         d_model=256,
         n_layers=4,
@@ -133,9 +133,9 @@ def get_small_model_config() -> AdvancedModelConfig:
     )
 
 
-def get_medium_model_config() -> AdvancedModelConfig:
+def get_medium_model_config() -> Phase2ModelConfig:
     """Get configuration for medium model (~50M params)."""
-    return AdvancedModelConfig(
+    return Phase2ModelConfig(
         vocab_size=5000,
         d_model=512,
         n_layers=8,
@@ -146,9 +146,9 @@ def get_medium_model_config() -> AdvancedModelConfig:
     )
 
 
-def get_large_model_config() -> AdvancedModelConfig:
+def get_large_model_config() -> Phase2ModelConfig:
     """Get configuration for large model (~150M params)."""
-    return AdvancedModelConfig(
+    return Phase2ModelConfig(
         vocab_size=10000,
         d_model=768,
         n_layers=12,
@@ -161,8 +161,8 @@ def get_large_model_config() -> AdvancedModelConfig:
 
 
 __all__ = [
-    "AdvancedModelConfig",
-    "AdvancedTrainingConfig",
+    "Phase2ModelConfig",
+    "Phase2TrainingConfig",
     "LoRAConfig",
     "GenerationConfig",
     "get_small_model_config",

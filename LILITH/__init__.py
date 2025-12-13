@@ -33,16 +33,42 @@ from .evaluation import (
     EarlyStopping,
 )
 from .logger import LILITHLogger, create_logger
-from .config_advanced import (
-    AdvancedModelConfig,
-    AdvancedTrainingConfig,
+from .config_phase2 import (
+    Phase2ModelConfig,
+    Phase2TrainingConfig,
     LoRAConfig,
     GenerationConfig,
     get_small_model_config,
     get_medium_model_config,
     get_large_model_config,
 )
-from .train_advanced import train_advanced, create_dataloaders, load_checkpoint
+from .train_phase2 import train_phase2, create_dataloaders, load_checkpoint
+
+# Production features
+from .datasets import (
+    StreamingTextDataset,
+    WikipediaDataset,
+    CodeDataset,
+    CombinedDataset,
+    LocalTextDataset,
+    get_wikipedia_corpus,
+    get_code_corpus,
+)
+from .optimization import (
+    get_parameter_groups,
+    get_layer_wise_lr_decay_groups,
+    GradientClipping,
+    compute_gradient_stats,
+)
+from .positional import RotaryEmbedding, ALiBi, apply_rotary_pos_emb
+from .activations import SwiGLU, GeGLU, ReGLU, get_activation
+from .quantization import (
+    quantize_dynamic,
+    quantize_to_int8,
+    quantize_to_float16,
+    QuantizedGPTDecoder,
+)
+from .serve import load_model_from_checkpoint
 
 __all__ = [
     # Core
@@ -83,16 +109,45 @@ __all__ = [
     # Logging
     "LILITHLogger",
     "create_logger",
-    # Advanced Config
-    "AdvancedModelConfig",
-    "AdvancedTrainingConfig",
+    # Phase 2 Config
+    "Phase2ModelConfig",
+    "Phase2TrainingConfig",
     "LoRAConfig",
     "GenerationConfig",
     "get_small_model_config",
     "get_medium_model_config",
     "get_large_model_config",
-    # Advanced Training
-    "train_advanced",
+    # Phase 2 Training
+    "train_phase2",
     "create_dataloaders",
     "load_checkpoint",
+    # Production Datasets
+    "StreamingTextDataset",
+    "WikipediaDataset",
+    "CodeDataset",
+    "CombinedDataset",
+    "LocalTextDataset",
+    "get_wikipedia_corpus",
+    "get_code_corpus",
+    # Optimization
+    "get_parameter_groups",
+    "get_layer_wise_lr_decay_groups",
+    "GradientClipping",
+    "compute_gradient_stats",
+    # Positional Encodings
+    "RotaryEmbedding",
+    "ALiBi",
+    "apply_rotary_pos_emb",
+    # Activations
+    "SwiGLU",
+    "GeGLU",
+    "ReGLU",
+    "get_activation",
+    # Quantization
+    "quantize_dynamic",
+    "quantize_to_int8",
+    "quantize_to_float16",
+    "QuantizedGPTDecoder",
+    # Serving
+    "load_model_from_checkpoint",
 ]
