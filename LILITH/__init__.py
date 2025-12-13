@@ -70,6 +70,42 @@ from .quantization import (
 )
 from .serve import load_model_from_checkpoint
 
+# Phase 3: Agent & Instruction Following
+from .instruction_data import (
+    InstructionExample,
+    InstructionDataset,
+    ConversationDataset,
+    ToolUseDataset,
+    SyntheticInstructionGenerator,
+    load_instruction_dataset,
+    SYSTEM_PROMPTS,
+)
+from .tools import (
+    Tool,
+    ToolParameter,
+    ToolCall,
+    ToolResult,
+    ToolRegistry,
+    create_default_tools,
+    parse_tool_calls_from_text,
+    format_tool_result_for_prompt,
+)
+from .agent import (
+    Message,
+    AgentConfig,
+    LILITHAgent,
+    create_assistant_agent,
+)
+from .rlhf import (
+    PreferencePair,
+    PreferenceDataset,
+    RewardModel,
+    train_reward_model,
+    PPOTrainer,
+    create_preference_dataset_from_comparisons,
+    generate_synthetic_preferences,
+)
+
 __all__ = [
     # Core
     "ModelConfig",
@@ -150,4 +186,34 @@ __all__ = [
     "QuantizedGPTDecoder",
     # Serving
     "load_model_from_checkpoint",
+    # Phase 3: Instruction Data
+    "InstructionExample",
+    "InstructionDataset",
+    "ConversationDataset",
+    "ToolUseDataset",
+    "SyntheticInstructionGenerator",
+    "load_instruction_dataset",
+    "SYSTEM_PROMPTS",
+    # Phase 3: Tools
+    "Tool",
+    "ToolParameter",
+    "ToolCall",
+    "ToolResult",
+    "ToolRegistry",
+    "create_default_tools",
+    "parse_tool_calls_from_text",
+    "format_tool_result_for_prompt",
+    # Phase 3: Agent
+    "Message",
+    "AgentConfig",
+    "LILITHAgent",
+    "create_assistant_agent",
+    # Phase 3: RLHF
+    "PreferencePair",
+    "PreferenceDataset",
+    "RewardModel",
+    "train_reward_model",
+    "PPOTrainer",
+    "create_preference_dataset_from_comparisons",
+    "generate_synthetic_preferences",
 ]
