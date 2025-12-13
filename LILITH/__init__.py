@@ -41,6 +41,8 @@ from .config_phase2 import (
     get_small_model_config,
     get_medium_model_config,
     get_large_model_config,
+    get_1b_model_config,
+    get_code_training_config,
 )
 from .train_phase2 import train_phase2, create_dataloaders, load_checkpoint
 
@@ -153,6 +155,8 @@ __all__ = [
     "get_small_model_config",
     "get_medium_model_config",
     "get_large_model_config",
+    "get_1b_model_config",
+    "get_code_training_config",
     # Phase 2 Training
     "train_phase2",
     "create_dataloaders",

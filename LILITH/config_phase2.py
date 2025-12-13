@@ -160,6 +160,89 @@ def get_large_model_config() -> Phase2ModelConfig:
     )
 
 
+def get_1b_model_config() -> Phase2ModelConfig:
+    """Get configuration for 1 billion parameter model.
+
+    Architecture optimized for code generation:
+    - 24 transformer layers
+    - 1792 hidden dimensions (112 per head)
+    - 16 attention heads
+    - 7168 FFN dimensions (4x hidden)
+    - 50k vocabulary (optimal for code + text with BPE)
+    - 2048 token context (handles longer code files)
+
+    Estimated parameters: ~1.02B
+    - Embeddings: 50k * 1792 = 89.6M
+    - Transformer layers: 24 * 38M = 912M
+    - Position embeddings: 2048 * 1792 = 3.7M
+    - Output layer: shared with embeddings
+
+    Memory requirements:
+    - Model weights (FP32): ~4GB
+    - Model weights (FP16): ~2GB
+    - Training (batch_size=1, FP16 + grad checkpointing): ~8-10GB VRAM
+    - Training (batch_size=4, FP16 + grad checkpointing): ~24-28GB VRAM
+    - Recommended: 40GB+ GPU (A100) or multi-GPU setup
+    """
+    return Phase2ModelConfig(
+        vocab_size=50000,
+        d_model=1792,
+        n_layers=24,
+        n_heads=16,
+        d_ff=7168,  # 4x d_model
+        max_seq_len=2048,
+        dropout=0.1,
+        use_gradient_checkpointing=True,  # Essential for memory efficiency
+    )
+
+
+def get_code_training_config(
+    num_gpus: int = 1,
+    total_batch_size: int = 512,
+) -> Phase2TrainingConfig:
+    """Get optimized training configuration for code models.
+
+    This configuration is optimized for training on code with large models:
+    - Uses mixed precision (FP16/BF16) for 2x speedup
+    - Gradient accumulation to achieve large effective batch sizes
+    - Cosine learning rate schedule with warmup
+    - Early stopping to prevent overfitting
+
+    Args:
+        num_gpus: Number of GPUs available
+        total_batch_size: Desired effective batch size (will use gradient accumulation)
+
+    Returns:
+        Optimized Phase2TrainingConfig
+    """
+    # Calculate gradient accumulation steps
+    # For 1B model, per_gpu_batch_size is typically 1-4 depending on VRAM
+    per_gpu_batch_size = 2 if num_gpus >= 4 else 1
+    batch_size = per_gpu_batch_size * num_gpus
+    gradient_accumulation_steps = max(1, total_batch_size // batch_size)
+
+    return Phase2TrainingConfig(
+        batch_size=per_gpu_batch_size,
+        num_epochs=3,
+        learning_rate=2e-4,  # Slightly lower for large models
+        warmup_steps=2000,
+        weight_decay=0.1,
+        max_grad_norm=1.0,
+        log_interval=100,
+        save_interval=5000,
+
+        # Performance optimizations
+        use_mixed_precision=True,
+        gradient_accumulation_steps=gradient_accumulation_steps,
+        lr_scheduler="cosine",
+
+        # Validation and early stopping
+        use_early_stopping=True,
+        validation_split=0.01,  # 1% for validation (code datasets are large)
+        early_stopping_patience=3,
+    )
+
+
 __all__ = [
     "Phase2ModelConfig",
     "Phase2TrainingConfig",
@@ -168,4 +251,6 @@ __all__ = [
     "get_small_model_config",
     "get_medium_model_config",
     "get_large_model_config",
+    "get_1b_model_config",
+    "get_code_training_config",
 ]
