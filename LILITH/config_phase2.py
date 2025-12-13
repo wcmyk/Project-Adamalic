@@ -196,6 +196,82 @@ def get_1b_model_config() -> Phase2ModelConfig:
     )
 
 
+def get_7b_model_config() -> Phase2ModelConfig:
+    """Get configuration for 7 billion parameter model (LLaMA-scale).
+
+    Architecture optimized for Claude-level performance:
+    - 32 transformer layers (deeper reasoning)
+    - 4096 hidden dimensions
+    - 32 attention heads (128 per head)
+    - 16384 FFN dimensions (4x hidden)
+    - 50k vocabulary
+    - 4096 token context (long-context reasoning)
+
+    Estimated parameters: ~6.7B
+    - Embeddings: 50k * 4096 = 204.8M
+    - Transformer layers: 32 * 201M = 6.4B
+    - Position embeddings: 4096 * 4096 = 16.8M
+
+    Memory requirements:
+    - Model weights (FP32): ~27GB
+    - Model weights (FP16): ~13.5GB
+    - Training (FP16 + grad checkpointing, batch=1): ~30-35GB VRAM
+    - Training (FP16 + grad checkpointing, batch=2): ~50-60GB VRAM
+    - Recommended: 8x A100 80GB or A100 80GB with DeepSpeed ZeRO-3
+
+    This scale approaches LLaMA-7B, Mistral-7B capabilities.
+    """
+    return Phase2ModelConfig(
+        vocab_size=50000,
+        d_model=4096,
+        n_layers=32,
+        n_heads=32,
+        d_ff=16384,  # 4x d_model (SwiGLU uses 4x instead of standard 4x)
+        max_seq_len=4096,
+        dropout=0.0,  # Large models use less dropout
+        use_gradient_checkpointing=True,
+    )
+
+
+def get_13b_model_config() -> Phase2ModelConfig:
+    """Get configuration for 13 billion parameter model (approaching Claude-scale).
+
+    Architecture optimized for maximum capability:
+    - 40 transformer layers (very deep reasoning)
+    - 5120 hidden dimensions
+    - 40 attention heads (128 per head)
+    - 20480 FFN dimensions (4x hidden)
+    - 50k vocabulary
+    - 4096 token context
+
+    Estimated parameters: ~13.0B
+    - Embeddings: 50k * 5120 = 256M
+    - Transformer layers: 40 * 315M = 12.6B
+    - Position embeddings: 4096 * 5120 = 21M
+
+    Memory requirements:
+    - Model weights (FP32): ~52GB
+    - Model weights (FP16): ~26GB
+    - Training (FP16 + grad checkpointing): 60-80GB VRAM per GPU
+    - Recommended: 8x A100 80GB with DeepSpeed ZeRO-3 or model parallelism
+
+    This scale approaches LLaMA-13B, approaching GPT-3.5 level capabilities.
+
+    Note: Training 13B requires serious infrastructure (~$15-30k cost).
+    Consider starting with 1B or 7B first.
+    """
+    return Phase2ModelConfig(
+        vocab_size=50000,
+        d_model=5120,
+        n_layers=40,
+        n_heads=40,
+        d_ff=20480,
+        max_seq_len=4096,
+        dropout=0.0,
+        use_gradient_checkpointing=True,
+    )
+
+
 def get_code_training_config(
     num_gpus: int = 1,
     total_batch_size: int = 512,
@@ -252,5 +328,7 @@ __all__ = [
     "get_medium_model_config",
     "get_large_model_config",
     "get_1b_model_config",
+    "get_7b_model_config",
+    "get_13b_model_config",
     "get_code_training_config",
 ]

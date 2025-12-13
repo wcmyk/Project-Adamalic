@@ -42,6 +42,8 @@ from .config_phase2 import (
     get_medium_model_config,
     get_large_model_config,
     get_1b_model_config,
+    get_7b_model_config,
+    get_13b_model_config,
     get_code_training_config,
 )
 from .train_phase2 import train_phase2, create_dataloaders, load_checkpoint
@@ -110,6 +112,18 @@ from .rlhf import (
     generate_synthetic_preferences,
 )
 
+# Phase 5: Advanced Reasoning
+from .reasoning import (
+    ReasoningStrategy,
+    ThoughtStep,
+    ReasoningTrace,
+    ChainOfThought,
+    SelfCritique,
+    ConstitutionalAI,
+    MetacognitiveMonitor,
+    create_advanced_reasoner,
+)
+
 __all__ = [
     # Core
     "ModelConfig",
@@ -158,6 +172,8 @@ __all__ = [
     "get_medium_model_config",
     "get_large_model_config",
     "get_1b_model_config",
+    "get_7b_model_config",
+    "get_13b_model_config",
     "get_code_training_config",
     # Phase 2 Training
     "train_phase2",
@@ -224,4 +240,13 @@ __all__ = [
     "PPOTrainer",
     "create_preference_dataset_from_comparisons",
     "generate_synthetic_preferences",
+    # Phase 5: Advanced Reasoning
+    "ReasoningStrategy",
+    "ThoughtStep",
+    "ReasoningTrace",
+    "ChainOfThought",
+    "SelfCritique",
+    "ConstitutionalAI",
+    "MetacognitiveMonitor",
+    "create_advanced_reasoner",
 ]
