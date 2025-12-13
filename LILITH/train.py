@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
+from dataclasses import asdict
 from typing import Iterable
 
 import torch
@@ -79,7 +80,16 @@ def train(
     if checkpoint_path is not None:
         checkpoint_path = Path(checkpoint_path)
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
-        torch.save({"model_state_dict": model.state_dict(), "tokenizer_vocab": tokenizer.itos}, checkpoint_path)
+
+        checkpoint = {
+            "model_state_dict": model.state_dict(),
+            "tokenizer_vocab": tokenizer.itos,
+            "config": model_config,
+            "step": global_step,
+            "config_dict": asdict(model_config),
+        }
+
+        torch.save(checkpoint, checkpoint_path)
         logger.info(f"Saved checkpoint to {checkpoint_path}")
 
     logger.info("Training completed!")
