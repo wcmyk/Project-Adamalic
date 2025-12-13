@@ -32,20 +32,41 @@ Start with the **Foundation (Phase 1)** to unblock all other work:
 
 These pieces establish secure identity, routing, and persistence so subsequent execution sandboxes, AngelGit integration, and ML adapters can be layered safely.
 
-## LLM Reference Implementation
-The `llm` package contains a minimal GPT-style decoder suitable for small-scale character modeling experiments and integration tests:
-- **Architecture:** Transformer encoder stack used as a causal decoder with learned token + positional embeddings, GELU activations, dropout, and tied projection head (`llm/model.py`).
-- **Configuration:** Dataclass-driven model/training hyperparameters to keep runs reproducible (`llm/config.py`).
-- **Data pipeline:** Deterministic character tokenizer and windowed next-token dataset for quick corpora bootstrapping (`llm/data.py`).
-- **Training loop:** Warmup+cosine LR schedule, gradient clipping, AdamW optimizer, and optional checkpoint emission (`llm/train.py`).
+## LILITH — Dual-Role LLM Reference Implementation
+The `LILITH` package hosts a minimal GPT-style decoder plus an opinionated multi-LLM system that separates a **general** model from a **code-focused** model:
+- **Architecture:** Transformer encoder stack used as a causal decoder with learned token + positional embeddings, GELU activations, dropout, and tied projection head (`LILITH/model.py`).
+- **Configuration:** Dataclass-driven model/training hyperparameters to keep runs reproducible (`LILITH/config.py`).
+- **Data pipeline:** Deterministic character tokenizer and windowed next-token dataset for quick corpora bootstrapping (`LILITH/data.py`).
+- **Training loop:** Warmup+cosine LR schedule, gradient clipping, AdamW optimizer, and optional checkpoint emission (`LILITH/train.py`).
+- **Multi-LLM coordinator:** Bootstraps and routes between code and general language specialists (`LILITH/system.py`).
 
-Example sketch:
+Example sketch (bootstrapping code + general specialists):
 ```python
-from llm import CharacterTokenizer, GPTDecoder, ModelConfig, TrainingConfig, train
+from LILITH import AngelicMultiLLM, ModelConfig, TrainingConfig
 
-corpus = ["angelos is online\n"]
-tokenizer = CharacterTokenizer(corpus)
-model_config = ModelConfig(vocab_size=tokenizer.vocab_size)
-train_config = TrainingConfig(max_steps=500, device="cpu")
-model = train(corpus, model_config, train_config, block_size=64, checkpoint_path="artifacts/llm.pt")
+general_corpus = ["angelos is online\n"]
+code_corpus = ["def angel_online():\n    return True\n"]
+
+multi = AngelicMultiLLM.bootstrap(
+    general_corpus=general_corpus,
+    code_corpus=code_corpus,
+    general_model=ModelConfig(vocab_size=32),
+    code_model=ModelConfig(vocab_size=48, d_model=320),
+    train_config=TrainingConfig(max_steps=100, device="cpu"),
+)
+
+generated = multi.generate("print(\"hello\")", max_new_tokens=32, route="code")
+```
+
+## SHAMSHEL — Sandbox Runner
+`SHAMSHEL` provides a lightweight subprocess runner with resource limits and short-lived working directories to keep generated code contained. Use `command_prefix` on `SandboxSpec` (for example, `firejail --net=none`) if you need external network hardening.
+
+Usage sketch:
+```python
+from SHAMSHEL.runner import SandboxRunner, SandboxSpec
+
+runner = SandboxRunner()
+spec = SandboxSpec(timeout=2.0, cpu_time_limit=1, memory_limit_mb=128)
+result = runner.run_python("print('hello from sandbox')", spec=spec)
+print(result.stdout)
 ```
