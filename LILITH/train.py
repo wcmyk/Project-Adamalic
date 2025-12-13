@@ -13,6 +13,7 @@ from torch.optim.lr_scheduler import LambdaLR
 from .config import ModelConfig, TrainingConfig
 from .data import CharacterTokenizer, TextDataset
 from .model import GPTDecoder
+from .logger import create_logger
 
 
 def _warmup_cosine_lr(step: int, warmup_steps: int, max_steps: int) -> float:
@@ -31,6 +32,9 @@ def train(
 ) -> GPTDecoder:
     """Instantiate and train a GPTDecoder on a character corpus."""
 
+    # Create logger
+    logger = create_logger(name="LILITH")
+
     tokenizer = CharacterTokenizer(corpus)
     encoded = [tid for text in corpus for tid in tokenizer.encode(text)]
     dataset = TextDataset(tokens=encoded, block_size=block_size)
@@ -38,6 +42,8 @@ def train(
 
     device = torch.device(train_config.device if torch.cuda.is_available() else "cpu")
     model = GPTDecoder(model_config).to(device)
+
+    logger.log_model_info(model, model_config)
 
     optimizer = AdamW(model.parameters(), lr=train_config.lr, weight_decay=train_config.weight_decay)
     scheduler = LambdaLR(
@@ -47,6 +53,8 @@ def train(
 
     global_step = 0
     model.train()
+    logger.info(f"Starting training for {train_config.max_steps} steps...")
+
     for epoch in range(10_000):  # loop until max_steps is reached
         for x, y in loader:
             if global_step >= train_config.max_steps:
@@ -64,7 +72,7 @@ def train(
 
             if global_step % train_config.log_interval == 0:
                 lr = scheduler.get_last_lr()[0]
-                print(f"step={global_step} loss={loss.item():.4f} lr={lr:.6f}")
+                logger.log_training_step(step=global_step, loss=loss.item(), lr=lr)
         if global_step >= train_config.max_steps:
             break
 
@@ -72,6 +80,8 @@ def train(
         checkpoint_path = Path(checkpoint_path)
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
         torch.save({"model_state_dict": model.state_dict(), "tokenizer_vocab": tokenizer.itos}, checkpoint_path)
+        logger.info(f"Saved checkpoint to {checkpoint_path}")
 
+    logger.info("Training completed!")
     return model
 
