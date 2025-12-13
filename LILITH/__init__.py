@@ -89,6 +89,7 @@ from .tools import (
     ToolResult,
     ToolRegistry,
     create_default_tools,
+    create_quant_tools,
     parse_tool_calls_from_text,
     format_tool_result_for_prompt,
 )
@@ -97,6 +98,7 @@ from .agent import (
     AgentConfig,
     LILITHAgent,
     create_assistant_agent,
+    create_quant_agent,
 )
 from .rlhf import (
     PreferencePair,
@@ -205,6 +207,7 @@ __all__ = [
     "ToolResult",
     "ToolRegistry",
     "create_default_tools",
+    "create_quant_tools",
     "parse_tool_calls_from_text",
     "format_tool_result_for_prompt",
     # Phase 3: Agent
@@ -212,6 +215,7 @@ __all__ = [
     "AgentConfig",
     "LILITHAgent",
     "create_assistant_agent",
+    "create_quant_agent",
     # Phase 3: RLHF
     "PreferencePair",
     "PreferenceDataset",

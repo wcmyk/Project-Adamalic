@@ -284,6 +284,217 @@ def create_default_tools() -> ToolRegistry:
     return registry
 
 
+def create_quant_tools() -> ToolRegistry:
+    """Create registry with quantitative development tools.
+
+    These tools are specialized for quantitative finance, statistical analysis,
+    and financial modeling.
+    """
+    registry = create_default_tools()  # Include default tools
+
+    # Statistical analysis tool
+    def stats_summary(data: List[float]) -> dict:
+        """Calculate statistical summary of a dataset.
+
+        Returns: mean, median, std, min, max, percentiles
+        """
+        try:
+            import numpy as np
+
+            data_array = np.array(data)
+            summary = {
+                "count": len(data_array),
+                "mean": float(np.mean(data_array)),
+                "median": float(np.median(data_array)),
+                "std": float(np.std(data_array)),
+                "min": float(np.min(data_array)),
+                "max": float(np.max(data_array)),
+                "q25": float(np.percentile(data_array, 25)),
+                "q75": float(np.percentile(data_array, 75)),
+                "skew": float(np.mean(((data_array - np.mean(data_array)) / np.std(data_array)) ** 3)),
+                "kurtosis": float(np.mean(((data_array - np.mean(data_array)) / np.std(data_array)) ** 4) - 3),
+            }
+            return summary
+        except Exception as e:
+            return {"error": str(e)}
+
+    registry.register_function(
+        stats_summary,
+        description="Calculate comprehensive statistical summary of numerical data",
+    )
+
+    # Black-Scholes option pricing
+    def black_scholes(
+        spot: float,
+        strike: float,
+        time_to_expiry: float,
+        risk_free_rate: float,
+        volatility: float,
+        option_type: str = "call"
+    ) -> dict:
+        """Calculate Black-Scholes option price and Greeks.
+
+        Args:
+            spot: Current asset price
+            strike: Strike price
+            time_to_expiry: Time to expiration (years)
+            risk_free_rate: Risk-free interest rate (annualized)
+            volatility: Implied volatility (annualized)
+            option_type: 'call' or 'put'
+
+        Returns: price, delta, gamma, theta, vega, rho
+        """
+        try:
+            import numpy as np
+            from math import sqrt, log, exp
+
+            # Standard normal CDF
+            def norm_cdf(x):
+                return (1.0 + np.erf(x / sqrt(2.0))) / 2.0
+
+            # Standard normal PDF
+            def norm_pdf(x):
+                return exp(-0.5 * x * x) / sqrt(2 * np.pi)
+
+            # Calculate d1 and d2
+            d1 = (log(spot / strike) + (risk_free_rate + 0.5 * volatility ** 2) * time_to_expiry) / \
+                 (volatility * sqrt(time_to_expiry))
+            d2 = d1 - volatility * sqrt(time_to_expiry)
+
+            if option_type.lower() == "call":
+                price = spot * norm_cdf(d1) - strike * exp(-risk_free_rate * time_to_expiry) * norm_cdf(d2)
+                delta = norm_cdf(d1)
+                theta = (-spot * norm_pdf(d1) * volatility / (2 * sqrt(time_to_expiry)) -
+                        risk_free_rate * strike * exp(-risk_free_rate * time_to_expiry) * norm_cdf(d2))
+                rho = strike * time_to_expiry * exp(-risk_free_rate * time_to_expiry) * norm_cdf(d2)
+            else:  # put
+                price = strike * exp(-risk_free_rate * time_to_expiry) * norm_cdf(-d2) - spot * norm_cdf(-d1)
+                delta = norm_cdf(d1) - 1
+                theta = (-spot * norm_pdf(d1) * volatility / (2 * sqrt(time_to_expiry)) +
+                        risk_free_rate * strike * exp(-risk_free_rate * time_to_expiry) * norm_cdf(-d2))
+                rho = -strike * time_to_expiry * exp(-risk_free_rate * time_to_expiry) * norm_cdf(-d2)
+
+            # Greeks (same for call and put)
+            gamma = norm_pdf(d1) / (spot * volatility * sqrt(time_to_expiry))
+            vega = spot * norm_pdf(d1) * sqrt(time_to_expiry)
+
+            return {
+                "price": float(price),
+                "delta": float(delta),
+                "gamma": float(gamma),
+                "theta": float(theta / 365),  # Daily theta
+                "vega": float(vega / 100),    # Vega per 1% change
+                "rho": float(rho / 100),      # Rho per 1% change
+            }
+        except Exception as e:
+            return {"error": str(e)}
+
+    registry.register_function(
+        black_scholes,
+        description="Calculate Black-Scholes option price and Greeks (delta, gamma, theta, vega, rho)",
+    )
+
+    # Portfolio optimization (mean-variance)
+    def portfolio_optimize(
+        returns: List[List[float]],
+        target_return: float = None
+    ) -> dict:
+        """Optimize portfolio weights using mean-variance optimization.
+
+        Args:
+            returns: List of return series for each asset (each inner list is one asset)
+            target_return: Optional target return (if None, finds max Sharpe ratio)
+
+        Returns: optimal_weights, expected_return, volatility, sharpe_ratio
+        """
+        try:
+            import numpy as np
+
+            returns_array = np.array(returns).T  # Shape: (n_periods, n_assets)
+            n_assets = returns_array.shape[1]
+
+            # Calculate expected returns and covariance
+            mean_returns = np.mean(returns_array, axis=0)
+            cov_matrix = np.cov(returns_array.T)
+
+            # Simple equal-weight for now (full optimization requires scipy)
+            weights = np.ones(n_assets) / n_assets
+
+            portfolio_return = np.dot(weights, mean_returns)
+            portfolio_vol = np.sqrt(np.dot(weights, np.dot(cov_matrix, weights)))
+            sharpe_ratio = portfolio_return / portfolio_vol if portfolio_vol > 0 else 0
+
+            return {
+                "weights": weights.tolist(),
+                "expected_return": float(portfolio_return),
+                "volatility": float(portfolio_vol),
+                "sharpe_ratio": float(sharpe_ratio),
+            }
+        except Exception as e:
+            return {"error": str(e)}
+
+    registry.register_function(
+        portfolio_optimize,
+        description="Optimize portfolio weights using mean-variance optimization",
+    )
+
+    # Backtest returns calculation
+    def backtest_metrics(returns: List[float], risk_free_rate: float = 0.0) -> dict:
+        """Calculate comprehensive backtest performance metrics.
+
+        Args:
+            returns: List of period returns (e.g., daily returns)
+            risk_free_rate: Risk-free rate for Sharpe calculation (annualized)
+
+        Returns: total_return, annualized_return, volatility, sharpe, max_drawdown, win_rate
+        """
+        try:
+            import numpy as np
+
+            returns_array = np.array(returns)
+
+            # Cumulative returns
+            cumulative = np.cumprod(1 + returns_array)
+            total_return = cumulative[-1] - 1
+
+            # Annualized metrics (assuming daily returns)
+            periods_per_year = 252
+            n_periods = len(returns)
+            annualized_return = (1 + total_return) ** (periods_per_year / n_periods) - 1
+            annualized_vol = np.std(returns_array) * np.sqrt(periods_per_year)
+
+            # Sharpe ratio
+            excess_returns = returns_array - (risk_free_rate / periods_per_year)
+            sharpe = np.mean(excess_returns) / np.std(returns_array) * np.sqrt(periods_per_year) if np.std(returns_array) > 0 else 0
+
+            # Maximum drawdown
+            running_max = np.maximum.accumulate(cumulative)
+            drawdowns = (cumulative - running_max) / running_max
+            max_drawdown = np.min(drawdowns)
+
+            # Win rate
+            win_rate = np.sum(returns_array > 0) / len(returns_array)
+
+            return {
+                "total_return": float(total_return),
+                "annualized_return": float(annualized_return),
+                "annualized_volatility": float(annualized_vol),
+                "sharpe_ratio": float(sharpe),
+                "max_drawdown": float(max_drawdown),
+                "win_rate": float(win_rate),
+                "num_periods": int(n_periods),
+            }
+        except Exception as e:
+            return {"error": str(e)}
+
+    registry.register_function(
+        backtest_metrics,
+        description="Calculate comprehensive backtest metrics (Sharpe, drawdown, win rate, etc.)",
+    )
+
+    return registry
+
+
 def parse_tool_calls_from_text(text: str) -> List[ToolCall]:
     """Parse tool calls from model output.
 
@@ -334,6 +545,7 @@ __all__ = [
     "ToolResult",
     "ToolRegistry",
     "create_default_tools",
+    "create_quant_tools",
     "parse_tool_calls_from_text",
     "format_tool_result_for_prompt",
 ]

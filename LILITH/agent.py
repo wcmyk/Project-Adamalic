@@ -373,9 +373,62 @@ def create_assistant_agent(
     )
 
 
+def create_quant_agent(
+    model: GPTDecoder,
+    tokenizer,
+    role: str = "quant_dev",
+) -> LILITHAgent:
+    """Create a specialized quantitative development agent.
+
+    This agent is optimized for quantitative finance, algorithmic trading,
+    and financial modeling tasks. It includes specialized tools for:
+    - Statistical analysis
+    - Options pricing (Black-Scholes)
+    - Portfolio optimization
+    - Backtest performance metrics
+
+    Args:
+        model: LILITH model
+        tokenizer: Tokenizer
+        role: Agent role type ("quant_dev", "project_manager", "10x_engineer", "hybrid_quant_pm")
+
+    Returns:
+        Configured quant agent with specialized tools
+    """
+    from .instruction_data import SYSTEM_PROMPTS
+    from .tools import create_quant_tools
+
+    roles = {
+        "quant_dev": SYSTEM_PROMPTS["quant_dev"],
+        "project_manager": SYSTEM_PROMPTS["project_manager"],
+        "10x_engineer": SYSTEM_PROMPTS["10x_engineer"],
+        "hybrid_quant_pm": SYSTEM_PROMPTS["hybrid_quant_pm"],
+    }
+
+    config = AgentConfig(
+        system_prompt=roles.get(role, roles["quant_dev"]),
+        enable_tools=True,
+        enable_thinking=True,
+        temperature=0.3,  # Lower temperature for more precise quant work
+        top_p=0.95,
+        max_tool_calls_per_turn=5,  # Allow multiple tool calls for complex analysis
+    )
+
+    # Use quant-specialized tool registry
+    tool_registry = create_quant_tools()
+
+    return LILITHAgent(
+        model=model,
+        tokenizer=tokenizer,
+        tool_registry=tool_registry,
+        config=config,
+    )
+
+
 __all__ = [
     "Message",
     "AgentConfig",
     "LILITHAgent",
     "create_assistant_agent",
+    "create_quant_agent",
 ]
