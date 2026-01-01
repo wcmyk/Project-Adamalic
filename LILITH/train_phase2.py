@@ -100,7 +100,7 @@ def create_dataloaders(
         return train_loader, None
 
 
-def train_advanced(
+def train_phase2(
     corpus: Iterable[str],
     model_config: ModelConfig,
     train_config: TrainingConfig,
@@ -363,7 +363,7 @@ def load_checkpoint(
 
 
 __all__ = [
-    "train_advanced",
+    "train_phase2",
     "create_dataloaders",
     "load_checkpoint",
 ]

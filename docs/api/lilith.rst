@@ -37,7 +37,7 @@ Training
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: LILITH.train_advanced
+.. automodule:: LILITH.train_phase2
    :members:
    :undoc-members:
    :show-inheritance:
