@@ -1,0 +1,35 @@
+use async::{channel, spawn, sleep}
+use viz::{figure, line}
+use math::{linspace, exp}
+
+actor Sensor {
+    inbox: channel<f64>(capacity=128)
+}
+
+impl Sensor {
+    async fn run(self, decay: f64) {
+        let t = linspace(0.0, 5.0, 500)
+        for ti in t {
+            await self.inbox.send(exp(-decay * ti))
+            await sleep(0.002)
+        }
+    }
+}
+
+async fn collect(sensor: Sensor) -> Array<f64> {
+    mut samples = Array::zeros(500)
+    parallel for i in 0..samples.len() {
+        samples[i] = await sensor.inbox.recv()
+    }
+    return samples
+}
+
+async fn main() {
+    let sensor = Sensor{}
+    spawn sensor.run(decay=0.7)
+
+    let samples = await collect(sensor)
+    let t = linspace(0.0, 5.0, samples.len())
+
+    figure().title("Async decay").add(line(t, samples)).show()
+}

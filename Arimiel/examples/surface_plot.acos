@@ -1,0 +1,14 @@
+use math::{linspace, sin, cos}
+use viz::{figure, surface, palette}
+
+fn main() {
+    let xs = linspace(-3.14, 3.14, 256)
+    let ys = xs
+    let zs = xs.outer(ys, |x, y| sin(x) * cos(y))
+
+    figure()
+        .title("Sine-Cosine Surface (acos demo)")
+        .theme(palette::magma())
+        .add(surface(xs, ys, zs).shaded(mode="pbr").wireframe(alpha=0.15))
+        .export("surface_acos.svg")
+}
