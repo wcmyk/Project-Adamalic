@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 
 
 class CharacterTokenizer:
-    """Simple character-level tokenizer with deterministic vocabulary ordering."""
+    """Simple character-level tokenizer with deterministic vocab."""
 
     def __init__(self, corpus: Iterable[str]):
         vocab = sorted({ch for text in corpus for ch in text})
@@ -38,7 +38,11 @@ class TextDataset(Dataset[Tuple[torch.Tensor, torch.Tensor]]):
         return max(0, len(self.tokens) - self.block_size)
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        x = torch.tensor(self.tokens[idx : idx + self.block_size], dtype=torch.long)
-        y = torch.tensor(self.tokens[idx + 1 : idx + 1 + self.block_size], dtype=torch.long)
+        x = torch.tensor(
+            self.tokens[idx:idx + self.block_size], dtype=torch.long
+        )
+        y = torch.tensor(
+            self.tokens[idx + 1:idx + 1 + self.block_size],
+            dtype=torch.long
+        )
         return x, y
-
